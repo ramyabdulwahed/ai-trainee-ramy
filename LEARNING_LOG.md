@@ -57,3 +57,23 @@ I would keep stopwords in sentiment analysis because words like "not", "never" a
 #### Explain in one sentence why TF-IDF’s IDF term is useful.
 
 The IDF term is useful because it lowers the weight of words that appear in many documents and gives more importance to rarer words that better distinguish one document from another.
+
+
+## Day 3
+
+
+### Self-Reflection Questions
+
+#### why does fp16=True help on the RTX 3060 but could hurt accuracy on older GPUs?
+fp16=True makes training use 16-bit floating point numbers instead of the usual 32-bit numbers. This helps on newer GPUs like the RTX 3060 because they have hardware support for fast 16-bit math, which can reduce memory usage and speed up training. However, fp16 has less numerical precision than fp32. On older GPUs, such as Pascal-generation cards, fp16 may not be accelerated as effectively and can be less numerically stable, which may hurt training quality or accuracy.
+
+#### What is an attention mask and what happens if you pass a random one during inference?
+
+The attention mask protects the model from treating padding as real text. A random mask corrupts the input signal, so the model may ignore important words or attend to fake padding, producing wrong or unstable predictions.
+
+#### Distinguish: pretraining, fine-tuning, instruction tuning, RLHF
+
+Pretraining: The model learns general language patterns from a huge amount of text before being used for a specific task.
+Fine-tuning: A pretrained model is trained further on a specific dataset or task, such as IMDB sentiment classification.
+Instruction tuning: A model is trained on examples of instructions and good responses so it learns to follow user requests better.
+RLHF: Reinforcement Learning from Human Feedback uses human preference judgments to make the model’s responses more helpful, safe, or aligned with what people prefer.
