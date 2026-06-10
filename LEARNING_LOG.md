@@ -77,3 +77,23 @@ Pretraining: The model learns general language patterns from a huge amount of te
 Fine-tuning: A pretrained model is trained further on a specific dataset or task, such as IMDB sentiment classification.
 Instruction tuning: A model is trained on examples of instructions and good responses so it learns to follow user requests better.
 RLHF: Reinforcement Learning from Human Feedback uses human preference judgments to make the model’s responses more helpful, safe, or aligned with what people prefer.
+
+
+## day4
+
+### Reflection questions explained
+
+#### Why does temperature=0 still sometimes produce different outputs across hardware?
+In theory: temperature=0 means always pick the most likely next token. So you expect deterministic output. But in practice, tiny differences can still happen because: different GPUs/CPUs may perform floating-point math slightly differently, libraries may use different optimized kernels, parallel computation can change tiny rounding behavior, tie-breaking between very close token scores can differ So the model may have two tokens with extremely close scores. Example: Token A score: 10.0000001 Token B score: 10.0000000 A tiny rounding difference can flip which one wins. Once one token differs, the rest of the generation can drift.
+
+#### What is the KV-cache and why does it grow with conversation length?
+A transformer uses attention. When generating text, it needs to look back at previous tokens. Without caching, every new token would require recalculating attention information for all previous tokens again and again. The KV-cache stores previous attention information. KV means: K = keys V = values. Thus KV-cache = saved memory of previous token computations used during generation. Why does it grow? Because longer conversation means more tokens. More tokens means the model has more previous context to attend to. So the cache stores more key/value vectors. short prompt = small KV-cache long conversation = large KV-cache. This is why long chats use more VRAM/RAM.
+
+The KV-cache stores the transformer’s already-computed attention information for previous tokens, so when the model generates the next token, it can reuse previous context instead of recalculating everything from scratch; as the chat gets longer, this cache grows, which can make generation slower and use more memory.
+
+#### When would you choose Ollama over llama.cpp-python, and vice versa?
+Choose Ollama when we want: quick setup, easy local model running, simple CLI, REST API, fast prototyping, local chatbot apps, less manual model management. Choose llama.cpp-python when we want: more control over GGUF files, exact quantization choice, custom Python integration, manual CPU/GPU offloading, more low-level experimentation
+
+
+#### What is Q4_K_M vs fp16? 
+Q4_K_M and fp16 are different precision/storage choices. fp16 stores weights using 16-bit floating-point numbers, which gives better precision but uses more memory. Q4_K_M stores weights in a 4-bit quantized GGUF format, which greatly reduces memory usage with a small quality tradeoff.
