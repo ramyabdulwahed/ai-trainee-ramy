@@ -97,3 +97,37 @@ Choose Ollama when we want: quick setup, easy local model running, simple CLI, R
 
 #### What is Q4_K_M vs fp16? 
 Q4_K_M and fp16 are different precision/storage choices. fp16 stores weights using 16-bit floating-point numbers, which gives better precision but uses more memory. Q4_K_M stores weights in a 4-bit quantized GGUF format, which greatly reduces memory usage with a small quality tradeoff.
+
+## day5
+
+### Reflection questions
+
+#### If you embed "bank" (the river kind) and "bank" (the money kind) with a bi-encoder, why is the embedding the same? What class of models solves this?
+    If I embed the word "bank" by itself, the embedding is the same for the river meaning and the money meaning because the model receives the exact same input text: bank. There is no surrounding context telling it whether I mean a financial bank or the side of a river. In our FAISS setup, we use a bi-encoder: the query and documents are encoded separately into vectors, then compared. This is fast because document embeddings can be precomputed, but it can struggle with ambiguous words when there is little context. A cross-encoder handles this better because it reads the query and candidate passage together and produces a relevance score based on their combined meaning.
+
+
+#### 
+IndexFlatIP is exact search, so it compares the query vector against every stored vector. At a small scale like 1,000 vectors, this is very fast because there is not much to scan and there is little overhead. At a huge scale like 10 million vectors, scanning every vector becomes expensive and slow. IndexHNSWFlat uses an approximate graph-based search structure, so it can skip many vectors and find good matches faster at large scale. However, at small scale, that extra structure can be unnecessary overhead, so IndexFlatIP can be faster.
+
+#### 
+If I do not L2-normalize before using inner-product search, the ranking can be affected by vector magnitude instead of just semantic direction. A document vector with a larger length may get a higher dot-product score even if it is not the most relevant result. This can cause FAISS to return results that win because their vectors are bigger, not because their meanings are closer to the query. L2-normalization fixes this by making every vector length 1, so inner product behaves like cosine similarity.
+
+
+## day6
+
+### Reflection questions
+
+#### What happens if you `match` a single lower-case word against a `keyword` field?
+
+A keyword field is stored as one exact value. It is not analyzed like a text field. If the lowercase query exactly matches the stored keyword value, it can match. For example, matching "positive" against a sentiment keyword field works if the stored value is exactly "positive". However, keyword fields are not full-text searchable. A partial word or different casing may not match. For example, searching "scifi" may not match a stored keyword value "SciFi" unless a lowercase normalizer was configured. So the main idea is: keyword fields are for exact matching, filtering, and aggregations, not flexible full-text search.
+
+#### Name two analyzer differences between `english` and `standard`.
+
+The standard analyzer is a general-purpose analyzer. It tokenizes text and lowercases terms, but it does not do English-specific stemming. The english analyzer is designed for English text. Two important differences are: The english analyzer removes common English stopwords, such as "the", "and", or "is". The english analyzer performs stemming, so related forms like "movies" and "movie" can be reduced closer together.
+
+#### In BM25, why does `idf` make rare words more influential?
+
+idf stands for inverse document frequency. It makes rare words more influential because rare words are more informative. A common word appears in many documents, so matching it does not strongly prove that a document is relevant. For example, in IMDB reviews, the word "movie" appears very often, so it is not very specific. But a word like "cinematography" is rarer, so if a query contains "cinematography" and a review also contains it, that is stronger evidence of relevance. Therefore, BM25 gives rare terms more weight because they help narrow down the search results better than common words.
+
+#### BM25 vs semnantic search
+Day 5 semantic search uses embeddings, so it searches by meaning. Day 6 BM25 search uses Elasticsearch, so it searches mainly by exact words, rare terms, term frequency, and document length normalization. In general: BM25 wins when the query has exact keywords or exact phrases. Semantic search wins when the query is a paraphrase or describes an idea using different words.
