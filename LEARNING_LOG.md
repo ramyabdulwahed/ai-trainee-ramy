@@ -131,3 +131,17 @@ idf stands for inverse document frequency. It makes rare words more influential 
 
 #### BM25 vs semnantic search
 Day 5 semantic search uses embeddings, so it searches by meaning. Day 6 BM25 search uses Elasticsearch, so it searches mainly by exact words, rare terms, term frequency, and document length normalization. In general: BM25 wins when the query has exact keywords or exact phrases. Semantic search wins when the query is a paraphrase or describes an idea using different words.
+
+
+## day7
+
+### Reflection questions
+
+#### In RRF, why does the choice of `k` matter less than one might expect?
+k matters less because RRF mainly depends on rank order and overlap between result lists. With a typical k = 60, the score difference between nearby ranks is small, so changing k usually does not dramatically change the final ranking. The most important thing is whether a document appears high in multiple rankers.
+
+#### Why might you choose Qdrant over ChromaDB for a 10M-document corpus?
+I might choose Qdrant over ChromaDB for a 10M-document corpus because Qdrant is more suitable for production-scale vector search. ChromaDB is excellent for local experiments and quick prototypes, but Qdrant is designed with stronger support for large indexes, efficient approximate nearest-neighbor search, metadata filtering, persistence, deployment, and scaling. At 10 million documents, performance, reliability, and index tuning become much more important.
+
+#### When does kNN fail completely that BM25 handles fine (and vice versa)?
+kNN can fail when the search depends on exact keywords, names, titles, IDs, or rare terms. For example, a query like "Citizen Kane" or an error code may be handled better by BM25 because BM25 directly matches exact terms. BM25 can fail when the user query is a paraphrase or describes meaning without using the same words as the document. For example, "rich man dies whispering a name" may not share exact words with a review about Citizen Kane, but semantic search can still find it because kNN searches by meaning. This is why hybrid search is useful: BM25 handles exact matching, while kNN handles semantic similarity.
