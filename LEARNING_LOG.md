@@ -145,3 +145,20 @@ I might choose Qdrant over ChromaDB for a 10M-document corpus because Qdrant is 
 
 #### When does kNN fail completely that BM25 handles fine (and vice versa)?
 kNN can fail when the search depends on exact keywords, names, titles, IDs, or rare terms. For example, a query like "Citizen Kane" or an error code may be handled better by BM25 because BM25 directly matches exact terms. BM25 can fail when the user query is a paraphrase or describes meaning without using the same words as the document. For example, "rich man dies whispering a name" may not share exact words with a review about Citizen Kane, but semantic search can still find it because kNN searches by meaning. This is why hybrid search is useful: BM25 handles exact matching, while kNN handles semantic similarity.
+
+
+## day9
+
+#### Why do we double quantize in NF4?
+
+In QLoRA, NF4 compresses the base model weights into 4-bit values to save memory. But quantization also requires extra metadata/scales to reconstruct the values during computation. Double quantization means we also quantize those scale/metadata values. It does not mean quantizing the whole model twice. The purpose is to reduce memory overhead and make QLoRA even more GPU-memory efficient without significantly hurting quality.
+
+
+#### Why does packing=True matter so much for short-sample instruction datasets?
+
+ Instruction datasets often contain short examples, but training uses a fixed max sequence length like 1024 or 2048 tokens. Without packing, each short example may waste most of the sequence on padding. packing=True combines multiple short examples into one full sequence, so the GPU trains on more real tokens and less padding. This makes training faster and more memory-efficient.
+
+
+#### What would break if lora_alpha is much larger than 2 × r?
+
+In LoRA, r controls the adapter rank/capacity, while lora_alpha controls the strength of the adapter update. The LoRA scaling is roughly lora_alpha / r. If lora_alpha is much larger than 2 × r, the adapter update becomes too strong and can overpower the base model. This can cause unstable training, worse generations, overfitting, repetition, or loss of the model’s original behavior. The code may still run, but model quality can break.
